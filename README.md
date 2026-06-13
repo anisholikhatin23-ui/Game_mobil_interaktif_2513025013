@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -315,6 +314,7 @@ groundMesh.rotation.x = -Math.PI / 2;
 groundMesh.position.y = -0.05;
 scene.add(groundMesh);
 
+// sunDisc: matahari versi sederhana (2D circle) untuk pencahayaan visual & suasana
 const sunDisc = new THREE.Mesh(
   new THREE.CircleGeometry(10, 16),
   new THREE.MeshBasicMaterial({ color: 0xffee88 })
@@ -323,8 +323,12 @@ sunDisc.position.set(-60, 80, -150);
 sunDisc.lookAt(0, 0, 0);
 scene.add(sunDisc);
 
+
 // ── STARS & MOON ─────────────────────────────────────────────────────────────
+// starField: kumpulan titik bintang (agar langit malam terasa hidup)
+// moonMesh : bulan yang digambar pakai canvas texture
 let starField = null, moonMesh = null;
+
 
 function initStars() {
   const geo = new THREE.BufferGeometry();
@@ -464,28 +468,48 @@ function makePalm(x, z) {
 }
 
 function makeCactus(x, z) {
+  // Kaktus: objek dekorasi untuk level gurun (berfungsi untuk memperkaya visual sisi jalan)
   const g = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({ color: 0x2e5a1c, roughness: 0.9, flatShading: true });
+
+  // Batang utama
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.28, 3.2, 8), mat);
   trunk.position.y = 1.6; trunk.castShadow = true;
   g.add(trunk);
+
+  // Cabang kiri
   const al = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.7, 8), mat);
   al.rotation.z = Math.PI/2; al.position.set(-0.44, 2.0, 0); g.add(al);
+
+  // Cabang kiri panjang
   const al2 = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.2, 8), mat);
   al2.position.set(-0.8, 2.5, 0); g.add(al2);
+
+  // Cabang kanan
   const ar = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.7, 8), mat);
   ar.rotation.z = Math.PI/2; ar.position.set(0.44, 1.4, 0); g.add(ar);
+
+  // Cabang kanan panjang
   const ar2 = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.2, 8), mat);
   ar2.position.set(0.8, 1.9, 0); g.add(ar2);
+
+  // Posisikan dan daftarkan ke sceneryPool biar bisa dibersihkan saat jauh
   g.position.set(x, 0, z);
   scene.add(g); sceneryPool.push(g);
 }
 
+
 function makeDune(x, z) {
-  const m = new THREE.Mesh(new THREE.SphereGeometry(3 + Math.random()*3, 8, 6), new THREE.MeshStandardMaterial({ color: 0xe2c175, roughness: 1 }));
-  m.scale.y = 0.32; m.position.set(x, -0.5, z);
+  // Bukit pasir (dune): memperkuat suasana gurun, ditempatkan di samping dengan skala pipih
+  const m = new THREE.Mesh(
+    new THREE.SphereGeometry(3 + Math.random()*3, 8, 6),
+    new THREE.MeshStandardMaterial({ color: 0xe2c175, roughness: 1 })
+  );
+  m.scale.y = 0.32; // dibuat lebih pipih
+  m.position.set(x, -0.5, z);
   scene.add(m); sceneryPool.push(m);
 }
+
 
 function makeRock(x, z) {
   const g = new THREE.Group();
@@ -564,9 +588,13 @@ function createGantry(text, color) {
 
 // ── CAR BUILDER ───────────────────────────────────────────────────────────────
 function buildCar(bodyColor, roofColor) {
+  // buildCar: membuat model mobil sederhana untuk player & opponent
   const g = new THREE.Group();
+  // bm: material body
   const bm = new THREE.MeshStandardMaterial({ color: bodyColor, metalness: 0.7, roughness: 0.3 });
+  // rm: material atap/cabin
   const rm = new THREE.MeshStandardMaterial({ color: roofColor, metalness: 0.5, roughness: 0.4 });
+
   const body  = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.55, 3.8), bm); body.position.y = 0.52;
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 2), rm); cabin.position.set(0, 1.02, -0.1);
   const glF = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.4, 0.08), new THREE.MeshStandardMaterial({ color: 0x88ccff, transparent: true, opacity: 0.55, metalness: 0.3 }));
@@ -606,53 +634,88 @@ const coinPool = [];
 function laneX(l) { return (l - 1) * LANE_W; }
 
 function spawnCoin(lane, z) {
+  // Coin: pickup yang menambah skor (tidak turbo)
   const g = new THREE.Group();
   g.add(
-    new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.12, 16), new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffaa00, emissiveIntensity: 0.8, metalness: 0.6 })),
-    new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.22), new THREE.MeshStandardMaterial({ color: 0xff8800, emissive: 0xff6600, emissiveIntensity: 1 }))
+    new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.4, 0.12, 16),
+      new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xffaa00, emissiveIntensity: 0.8, metalness: 0.6 })
+    ),
+    new THREE.Mesh(
+      new THREE.BoxGeometry(0.22, 0.14, 0.22),
+      new THREE.MeshStandardMaterial({ color: 0xff8800, emissive: 0xff6600, emissiveIntensity: 1 })
+    )
   );
   g.position.set(laneX(lane), 0.7, z);
+  // userData dipakai untuk update animasi & status koleksi
   g.userData = { rotSpeed: 0.04, bobPhase: Math.random()*Math.PI*2, collected: false, isTurbo: false };
   scene.add(g); coinPool.push(g);
 }
 
+
 function spawnTurbo(lane, z) {
+  // Turbo pickup: pickup yang menambah nilai turbo player
   const g = new THREE.Group();
-  const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.5 }));
+  const m = new THREE.Mesh(
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
+    new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.5 })
+  );
   m.rotation.y = Math.PI/4;
+  // PointLight kecil biar terlihat bercahaya
   g.add(m, new THREE.PointLight(0x00e5ff, 2, 4));
   g.position.set(laneX(lane), 0.9, z);
   g.userData = { rotSpeed: 0.07, bobPhase: Math.random()*Math.PI*2, collected: false, isTurbo: true };
   scene.add(g); coinPool.push(g);
 }
 
+
 // ── OPPONENTS ──────────────────────────────────────────────────────────────────
 const oppPool  = [];
 const OPP_COLS = [0x2255cc, 0x22aa44, 0xaa8800, 0x883300, 0xcc44aa, 0x226688];
 
 function spawnOpp(lane, z) {
+  // Opponent: mobil lawan yang menjadi rintangan & bisa menyebabkan loseLife
   const col = OPP_COLS[Math.floor(Math.random()*OPP_COLS.length)];
+  // buildCar: menggunakan warna body & atap yang berbeda biar lebih variatif
   const car = buildCar(col, new THREE.Color(col).multiplyScalar(0.65).getHex());
   car.position.set(laneX(lane), 0, z);
   car.rotation.y = Math.PI;
+  // userData.speed: variasi kecepatan lawan
+  // userData.lane : lane lawan bergerak mengikuti laneX() 
   car.userData = { speed: 0.12 + Math.random()*0.12, lane };
   scene.add(car); oppPool.push(car);
 }
+
 
 // ── PORTAL / FINISH ────────────────────────────────────────────────────────────
 let portalMesh = null;
 
 function spawnPortal(z) {
+  // Portal: titik transisi level berikutnya (ketika collide memicu triggerPortal())
   if (portalMesh) scene.remove(portalMesh);
   const g = new THREE.Group();
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.3, 12, 30), new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 2, metalness: 0.8 }));
+
+  // Ring utama
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(2.2, 0.3, 12, 30),
+    new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x00ffcc, emissiveIntensity: 2, metalness: 0.8 })
+  );
   ring.rotation.y = Math.PI/2;
-  const disc = new THREE.Mesh(new THREE.CircleGeometry(2, 24), new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+
+  // Disc transparan agar terlihat “portal”
+  const disc = new THREE.Mesh(
+    new THREE.CircleGeometry(2, 24),
+    new THREE.MeshBasicMaterial({ color: 0x00ffcc, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+  );
   disc.rotation.y = Math.PI/2;
+
+  // Glow point light kecil
   g.add(ring, disc, new THREE.PointLight(0x00ffcc, 3, 10));
+
   g.position.set(0, 2.2, z);
   scene.add(g); portalMesh = g;
 }
+
 
 function spawnFinish(z) {
   if (portalMesh) scene.remove(portalMesh);
